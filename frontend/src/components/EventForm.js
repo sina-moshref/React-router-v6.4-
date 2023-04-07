@@ -6,6 +6,7 @@ import {
   json,
   redirect,
 } from "react-router-dom";
+import { getAuthToken } from "../util/auth";
 
 import classes from "./EventForm.module.css";
 
@@ -70,11 +71,11 @@ function EventForm({ method, event }) {
         />
       </p>
       <div className={classes.actions}>
-        <button type="button" disabled={isSubmitting} onClick={cancelHandler}>
+        <button type="button" onClick={cancelHandler} disabled={isSubmitting}>
           Cancel
         </button>
         <button disabled={isSubmitting}>
-          {isSubmitting ? "submiting.." : "Save"}
+          {isSubmitting ? "Submitting..." : "Save"}
         </button>
       </div>
     </Form>
@@ -86,6 +87,7 @@ export default EventForm;
 export async function action({ request, params }) {
   const method = request.method;
   const data = await request.formData();
+
   const eventData = {
     title: data.get("title"),
     image: data.get("image"),
@@ -94,16 +96,18 @@ export async function action({ request, params }) {
   };
 
   let url = "http://localhost:8080/events";
-  console.log("posting..");
+
   if (method === "PATCH") {
-    console.log("patching..");
-    const eventId = params.id;
+    const eventId = params.eventId;
     url = "http://localhost:8080/events/" + eventId;
   }
+
+  const token = getAuthToken();
   const response = await fetch(url, {
     method: method,
     headers: {
       "Content-Type": "application/json",
+      Authorization: "Bearer " + token,
     },
     body: JSON.stringify(eventData),
   });
@@ -111,9 +115,10 @@ export async function action({ request, params }) {
   if (response.status === 422) {
     return response;
   }
-  if (!response) {
-    throw json({ message: "data could not save" }, { status: 500 });
+
+  if (!response.ok) {
+    throw json({ message: "Could not save event." }, { status: 500 });
   }
-  console.log("did post");
+
   return redirect("/events");
 }

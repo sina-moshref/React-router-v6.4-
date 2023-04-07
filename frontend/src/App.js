@@ -1,51 +1,57 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import EditEventPage from "./pages/EditEventPage";
-import ErrorPage from "./pages/ErrorPage";
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
+
+import EditEventPage from "./pages/EditEvent";
+import ErrorPage from "./pages/Error";
 import EventDetailPage, {
-  loader as eventDetailsLoader,
-  action as deleteAction,
-} from "./pages/EventDetailPage";
-import EventNavigation from "./components/EventNavigation";
-import EventsPage, { loader as eventLoader } from "./pages/EventsPage";
-import HomePage from "./pages/HomePage";
-import NewEventPage from "./pages/NewEventPage";
+  loader as eventDetailLoader,
+  action as deleteEventAction,
+} from "./pages/EventDetail";
+import EventsPage, { loader as eventsLoader } from "./pages/Events";
+import EventsRootLayout from "./pages/EventsRoot";
+import HomePage from "./pages/Home";
+import NewEventPage from "./pages/NewEvent";
 import RootLayout from "./pages/Root";
 import { action as manipulateEventAction } from "./components/EventForm";
-import NewsletterPage, {
-  action as newsletterAction,
-} from "./pages/NewsletterPage";
+import NewsletterPage, { action as newsletterAction } from "./pages/Newsletter";
+import AuthenticationPage, {
+  action as authAction,
+} from "./pages/Authentication";
+import { action as logoutAction } from "./pages/Logout";
+import { tokenLoader, checkAuthLoader } from "./util/auth";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <RootLayout />,
     errorElement: <ErrorPage />,
+    id: "root",
+    loader: tokenLoader,
     children: [
       { index: true, element: <HomePage /> },
       {
         path: "events",
-        element: <EventNavigation />,
+        element: <EventsRootLayout />,
         children: [
           {
             index: true,
             element: <EventsPage />,
-            loader: eventLoader,
+            loader: eventsLoader,
           },
           {
-            path: ":id",
+            path: ":eventId",
             id: "event-detail",
-            loader: eventDetailsLoader,
+            loader: eventDetailLoader,
             children: [
               {
                 index: true,
                 element: <EventDetailPage />,
-                action: deleteAction,
+                action: deleteEventAction,
               },
-
               {
                 path: "edit",
                 element: <EditEventPage />,
                 action: manipulateEventAction,
+                loader: checkAuthLoader,
               },
             ],
           },
@@ -53,6 +59,7 @@ const router = createBrowserRouter([
             path: "new",
             element: <NewEventPage />,
             action: manipulateEventAction,
+            loader: checkAuthLoader,
           },
         ],
       },
@@ -61,6 +68,12 @@ const router = createBrowserRouter([
         element: <NewsletterPage />,
         action: newsletterAction,
       },
+      {
+        path: "auth",
+        element: <AuthenticationPage />,
+        action: authAction,
+      },
+      { path: "logout", action: logoutAction },
     ],
   },
 ]);

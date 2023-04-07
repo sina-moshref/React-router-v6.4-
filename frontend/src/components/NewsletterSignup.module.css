@@ -16,7 +16,3 @@
   background-color: var(--color-primary-300);
   color: var(--color-gray-800);
 }
-
-.newsletter input:focus {
-  outline: none;
-}
